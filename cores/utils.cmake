@@ -17,21 +17,12 @@ if(NOT ARM_TOOLCHAIN_PATH)
     file(TO_CMAKE_PATH "${ARM_TOOLCHAIN_PATH}" ARM_TOOLCHAIN_PATH)
 endif()
 
+set(ARM_TARGET_TRIPLET "arm-none-eabi-")
+
 set(TOOLCHAIN_SYSROOT  "${ARM_TOOLCHAIN_PATH}/${ARM_TARGET_TRIPLET}")
 set(TOOLCHAIN_BIN_PATH "${ARM_TOOLCHAIN_PATH}/bin")
 
 set(CMAKE_SYSROOT ${TOOLCHAIN_SYSROOT})
-
-if(NOT ARM_TARGET_TRIPLET)
-    if(DEFINED ENV{ARM_TARGET_TRIPLET})
-        message(STATUS "Detected target triplet ARM_TARGET_TRIPLET in environmental variables: ")
-        message(STATUS "$ENV{ARM_TARGET_TRIPLET}")
-        set(ARM_TARGET_TRIPLET $ENV{ARM_TARGET_TRIPLET})
-    else()
-        set(ARM_TARGET_TRIPLET "arm-none-eabi-")
-        message(STATUS "No ARM_TARGET_TRIPLET specified, using default: " ${ARM_TARGET_TRIPLET})
-    endif()
-endif()
 
 find_program(CMAKE_OBJCOPY NAMES ${ARM_TARGET_TRIPLET}objcopy HINTS ${TOOLCHAIN_BIN_PATH})
 find_program(CMAKE_OBJDUMP NAMES ${ARM_TARGET_TRIPLET}objdump HINTS ${TOOLCHAIN_BIN_PATH})
@@ -98,26 +89,23 @@ function(arm_add_linker_script TARGET VISIBILITY SCRIPT)
     set_target_properties(${TARGET} PROPERTIES ${INTERFACE_PREFIX}LINK_DEPENDS "${LINK_DEPENDS}")
 endfunction()
 
-if(NOT (TARGET ARM::NoSys))
-    add_library(ARM::NoSys INTERFACE IMPORTED)
-    target_compile_options(ARM::NoSys INTERFACE $<$<C_COMPILER_ID:GNU>:--specs=nosys.specs>)
-    target_link_options(ARM::NoSys INTERFACE $<$<C_COMPILER_ID:GNU>:--specs=nosys.specs>)
-endif()
-
-if(NOT (TARGET ARM::Nano))
-    add_library(ARM::Nano INTERFACE IMPORTED)
-    target_compile_options(ARM::Nano INTERFACE $<$<C_COMPILER_ID:GNU>:--specs=nano.specs>)
-    target_link_options(ARM::Nano INTERFACE $<$<C_COMPILER_ID:GNU>:--specs=nano.specs>)
-endif()
-
 function(arm_util_create_family_target CORE)
     if(NOT (TARGET ARM::${CORE}))
         add_library(ARM::${CORE} INTERFACE IMPORTED)
         target_compile_options(ARM::${CORE} INTERFACE 
-            -mthumb -Wall -ffunction-sections -fdata-sections
+            $<$<CONFIG:Debug>:-Og -gdwarf-2>
+            -Wall
+            -ffunction-sections
+            -fdata-sections
+            --specs=nano.specs
         )
         target_link_options(ARM::${CORE} INTERFACE 
-            -mthumb -Wl,--gc-sections -Wl,--print-memory-usage
+            --specs=nosys.specs
+            --specs=nano.specs
+            -Wl,--start-group -lc -lm -Wl,--end-group
+            -Wl,-Map=${CMAKE_PROJECT_NAME}.map,--cref
+            -Wl,--gc-sections
+            -Wl,--print-memory-usage
         )
     endif()
 endfunction()
