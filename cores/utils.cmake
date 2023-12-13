@@ -109,4 +109,6 @@ function(arm_util_create_family_target CORE)
     endif()
 endfunction()
 
+include(cores/M0)
+include(cores/M3)
 include(cores/M4)
