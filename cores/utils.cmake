@@ -92,14 +92,13 @@ endfunction()
 function(arm_util_create_family_target CORE)
     if(NOT (TARGET ARM::${CORE}))
         add_library(ARM::${CORE} INTERFACE IMPORTED)
-        target_compile_options(ARM::${CORE} INTERFACE 
-            $<$<CONFIG:Debug>:-Og -gdwarf-2>
+        target_compile_options(ARM::${CORE} INTERFACE
             -Wall
             -ffunction-sections
             -fdata-sections
             --specs=nano.specs
         )
-        target_link_options(ARM::${CORE} INTERFACE 
+        target_link_options(ARM::${CORE} INTERFACE
             --specs=nosys.specs
             --specs=nano.specs
             -Wl,--start-group -lc -lm -Wl,--end-group
