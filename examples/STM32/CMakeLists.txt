@@ -2,10 +2,9 @@ cmake_minimum_required(VERSION 3.27)
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/arm-cmake/arm-gcc-toolchain.cmake)
 
-get_filename_component(BASE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-set(PROJECT_NAME ${BASE_FOLDER})
+get_filename_component(FOLDER_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
-project(${PROJECT_NAME} LANGUAGES C ASM)
+project(${FOLDER_NAME} LANGUAGES C ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
@@ -52,6 +51,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ARM::M0
     CMSIS
     HAL)
+
+target_compile_options(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Debug>:-O0 -gdwarf-2>)
 
 arm_generate_binary_file(${PROJECT_NAME})
 arm_generate_hex_file(${PROJECT_NAME})
