@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.20)
 
 target_sources(${PROJECT_NAME} PRIVATE
     Src/gpio.c
@@ -7,4 +7,4 @@ target_sources(${PROJECT_NAME} PRIVATE
     Src/stm32f0xx_it.c)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/Inc)
+    Inc)
