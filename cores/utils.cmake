@@ -1,3 +1,5 @@
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "cores/init_flags")
+
 if(NOT ARM_TOOLCHAIN_PATH)
     if(DEFINED ENV{ARM_TOOLCHAIN_PATH})
         message(STATUS "Detected toolchain path ARM_TOOLCHAIN_PATH in environmental variables: ")
@@ -62,7 +64,7 @@ function(_arm_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
     )
 endfunction()
 
-function(arm_generate_binary_file TARGET)
+function(arm_generate_bin_file TARGET)
     _arm_generate_file(${TARGET} "bin" "binary")
 endfunction()
 
@@ -89,22 +91,30 @@ function(arm_add_linker_script TARGET VISIBILITY SCRIPT)
     set_target_properties(${TARGET} PROPERTIES ${INTERFACE_PREFIX}LINK_DEPENDS "${LINK_DEPENDS}")
 endfunction()
 
+set(C_COMPILE_FLAGS -Wall -Wextra -Wpedantic -fdata-sections -ffunction-sections)
+
+set(CXX_COMPILE_FLAGS ${C_COMPILE_FLAGS} -fno-rtti -fno-exceptions -fno-threadsafe-statics)
+
+set(ASM_COMPILE_FLAGS ${C_COMPILE_FLAGS} -x assembler-with-cpp -MMD -MP)
+
+set(C_LINK_FLAGS -Wl,-Map=${CMAKE_PROJECT_NAME}.map -Wl,--gc-sections --specs=nano.specs --specs=nosys.specs)
+set(C_LINK_FLAGS ${C_LINK_FLAGS} -Wl,--start-group -lc -lm -Wl,--end-group -Wl,--print-memory-usage)
+
+set(CXX_LINK_FLAGS ${C_LINK_FLAGS} -Wl,--start-group -lstdc++ -lsupc++ -Wl,--end-group)
+
 function(arm_util_create_family_target CORE)
     if(NOT (TARGET ARM::${CORE}))
         add_library(ARM::${CORE} INTERFACE IMPORTED)
         target_compile_options(ARM::${CORE} INTERFACE
-            -Wall
-            -ffunction-sections
-            -fdata-sections
-            --specs=nano.specs
+            $<$<CONFIG:Debug>:-O0 -g3>
+            $<$<CONFIG:Release>:-Os -g0>
+            $<$<COMPILE_LANGUAGE:C>:${C_COMPILE_FLAGS}>
+            $<$<COMPILE_LANGUAGE:ASM>:${ASM_COMPILE_FLAGS}>
+            $<$<COMPILE_LANGUAGE:CXX>:${CXX_COMPILE_FLAGS}>
         )
         target_link_options(ARM::${CORE} INTERFACE
-            --specs=nosys.specs
-            --specs=nano.specs
-            -Wl,--start-group -lc -lm -Wl,--end-group
-            -Wl,-Map=${CMAKE_PROJECT_NAME}.map,--cref
-            -Wl,--gc-sections
-            -Wl,--print-memory-usage
+            $<$<LINK_LANGUAGE:C>:${C_LINK_FLAGS}>
+            $<$<LINK_LANGUAGE:CXX>:${CXX_LINK_FLAGS}>
         )
     endif()
 endfunction()
@@ -112,3 +122,4 @@ endfunction()
 include(cores/M0)
 include(cores/M3)
 include(cores/M4)
+include(cores/M7)

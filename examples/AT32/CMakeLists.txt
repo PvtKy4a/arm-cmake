@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_TOOLCHAIN_FILE arm-cmake/arm-gcc-toolchain.cmake)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/arm-cmake/arm-gcc-toolchain.cmake)
 
 get_filename_component(FOLDER_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
@@ -42,5 +42,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     -DAT32F437ZMT7)
 
-arm_generate_binary_file(${PROJECT_NAME})
+arm_generate_bin_file(${PROJECT_NAME})
 arm_generate_hex_file(${PROJECT_NAME})
