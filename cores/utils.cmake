@@ -32,14 +32,6 @@ find_program(CMAKE_SIZE NAMES ${ARM_TARGET_TRIPLET}size HINTS ${TOOLCHAIN_BIN_PA
 find_program(CMAKE_DEBUGGER NAMES ${ARM_TARGET_TRIPLET}gdb HINTS ${TOOLCHAIN_BIN_PATH})
 find_program(CMAKE_CPPFILT NAMES ${ARM_TARGET_TRIPLET}c++filt HINTS ${TOOLCHAIN_BIN_PATH})
 
-function(arm_print_size_of_target TARGET)
-    add_custom_target(${TARGET}_always_display_size
-        ALL COMMAND ${CMAKE_SIZE} "$<TARGET_FILE:${TARGET}>"
-        COMMENT "Target Sizes: "
-        DEPENDS ${TARGET}
-    )
-endfunction()
-
 function(_arm_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
     get_target_property(TARGET_OUTPUT_NAME ${TARGET} OUTPUT_NAME)
     if (TARGET_OUTPUT_NAME)
@@ -64,15 +56,7 @@ function(_arm_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
     )
 endfunction()
 
-function(arm_generate_bin_file TARGET)
-    _arm_generate_file(${TARGET} "bin" "binary")
-endfunction()
-
-function(arm_generate_hex_file TARGET)
-    _arm_generate_file(${TARGET} "hex" "ihex")
-endfunction()
-
-function(arm_add_linker_script TARGET VISIBILITY SCRIPT)
+function(_arm_add_ld TARGET VISIBILITY SCRIPT)
     get_filename_component(SCRIPT "${SCRIPT}" ABSOLUTE)
     target_link_options(${TARGET} ${VISIBILITY} -T "${SCRIPT}")
 
@@ -102,7 +86,7 @@ set(C_LINK_FLAGS ${C_LINK_FLAGS} -Wl,--start-group -lc -lm -Wl,--end-group -Wl,-
 
 set(CXX_LINK_FLAGS ${C_LINK_FLAGS} -Wl,--start-group -lstdc++ -lsupc++ -Wl,--end-group)
 
-function(arm_util_create_family_target CORE)
+function(_arm_create_core_target CORE)
     if(NOT (TARGET ARM::${CORE}))
         add_library(ARM::${CORE} INTERFACE IMPORTED)
         target_compile_options(ARM::${CORE} INTERFACE

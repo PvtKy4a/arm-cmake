@@ -1,4 +1,4 @@
-arm_util_create_family_target(M4)
+_arm_create_core_target(M4)
 
 target_compile_options(ARM::M4 INTERFACE 
     -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/arm-cmake/arm-gcc-toolchain.cmake)
 
@@ -11,7 +11,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME})
 
-arm_add_linker_script(${PROJECT_NAME} PRIVATE STM32F051R8Tx_FLASH.ld)
+arm_add_linker_script(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/STM32F051R8Tx_FLASH.ld)
 
 add_library(CMSIS INTERFACE)
 target_sources(CMSIS INTERFACE
