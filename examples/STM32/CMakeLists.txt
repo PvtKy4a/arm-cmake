@@ -13,6 +13,13 @@ add_executable(${PROJECT_NAME})
 
 arm_add_linker_script(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/STM32F051R8Tx_FLASH.ld)
 
+arm_generate_bin_file(${PROJECT_NAME})
+arm_generate_hex_file(${PROJECT_NAME})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    -DUSE_HAL_DRIVER
+    -DSTM32F051x8)
+
 add_library(CMSIS INTERFACE)
 target_sources(CMSIS INTERFACE
     Drivers/CMSIS/Device/ST/STM32F0xx/Source/Templates/system_stm32f0xx.c
@@ -46,12 +53,7 @@ add_subdirectory(Core)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ARM::M0
+    ARM::M0::Nano
+    ARM::M0::NoSys
     CMSIS
     HAL)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    -DUSE_HAL_DRIVER
-    -DSTM32F051x8)
-
-arm_generate_bin_file(${PROJECT_NAME})
-arm_generate_hex_file(${PROJECT_NAME})

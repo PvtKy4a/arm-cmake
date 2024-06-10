@@ -81,10 +81,18 @@ set(CXX_COMPILE_FLAGS ${C_COMPILE_FLAGS} -fno-rtti -fno-exceptions -fno-threadsa
 
 set(ASM_COMPILE_FLAGS ${C_COMPILE_FLAGS} -x assembler-with-cpp -MMD -MP)
 
-set(C_LINK_FLAGS -Wl,-Map=${CMAKE_PROJECT_NAME}.map -Wl,--gc-sections --specs=nano.specs --specs=nosys.specs)
+set(C_LINK_FLAGS -Wl,-Map=${CMAKE_PROJECT_NAME}.map -Wl,--gc-sections)
 set(C_LINK_FLAGS ${C_LINK_FLAGS} -Wl,--start-group -lc -lm -Wl,--end-group -Wl,--print-memory-usage)
 
 set(CXX_LINK_FLAGS ${C_LINK_FLAGS} -Wl,--start-group -lstdc++ -lsupc++ -Wl,--end-group)
+
+set(NANO_C_LINK_FLAGS --specs=nano.specs)
+
+set(NANO_CXX_LINK_FLAGS ${NANO_C_LINK_FLAGS})
+
+set(NOSYS_C_LINK_FLAGS --specs=nosys.specs)
+
+set(NOSYS_CXX_LINK_FLAGS ${NOSYS_C_LINK_FLAGS})
 
 function(_arm_create_core_target CORE)
     if(NOT (TARGET ARM::${CORE}))
@@ -99,6 +107,16 @@ function(_arm_create_core_target CORE)
         target_link_options(ARM::${CORE} INTERFACE
             $<$<LINK_LANGUAGE:C>:${C_LINK_FLAGS}>
             $<$<LINK_LANGUAGE:CXX>:${CXX_LINK_FLAGS}>
+        )
+        add_library(ARM::${CORE}::Nano INTERFACE IMPORTED)
+        target_link_options(ARM::${CORE}::Nano INTERFACE
+            $<$<LINK_LANGUAGE:C>:${NANO_C_LINK_FLAGS}>
+            $<$<LINK_LANGUAGE:CXX>:${NANO_CXX_LINK_FLAGS}>
+        )
+        add_library(ARM::${CORE}::NoSys INTERFACE IMPORTED)
+        target_link_options(ARM::${CORE}::NoSys INTERFACE
+            $<$<LINK_LANGUAGE:C>:${NOSYS_C_LINK_FLAGS}>
+            $<$<LINK_LANGUAGE:CXX>:${NOSYS_CXX_LINK_FLAGS}>
         )
     endif()
 endfunction()

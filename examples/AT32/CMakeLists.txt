@@ -13,6 +13,12 @@ add_executable(${PROJECT_NAME})
 
 arm_add_linker_script(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/libraries/cmsis/cm4/device_support/startup/gcc/linker/AT32F437xM_FLASH.ld)
 
+arm_generate_bin_file(${PROJECT_NAME})
+arm_generate_hex_file(${PROJECT_NAME})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    -DAT32F437ZMT7)
+
 add_library(CMSIS INTERFACE)
 target_sources(CMSIS INTERFACE
     libraries/cmsis/cm4/device_support/system_at32f435_437.c
@@ -36,11 +42,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ARM::M4
+    ARM::M4::Nano
+    ARM::M4::NoSys
     CMSIS
     McuDrivers)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    -DAT32F437ZMT7)
-
-arm_generate_bin_file(${PROJECT_NAME})
-arm_generate_hex_file(${PROJECT_NAME})
