@@ -24,7 +24,6 @@
 
 /* includes ------------------------------------------------------------------*/
 #include "at32f435_437_int.h"
-#include "at_surf_f437_board_joystick.h"
 
 /**
   * @brief  this function handles nmi exception.
@@ -121,54 +120,4 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-}
-
-/**
-  * @brief  this function handles dma interrupt request.
-  * @param  none
-  * @retval none
-  */
-void PCA_I2C_DMA_RX_IRQHandler(void)
-{
-  i2c_dma_rx_irq_handler(&hi2c_pca);
-}
-
-/**
-  * @brief  this function handles dma interrupt request.
-  * @param  none
-  * @retval none
-  */
-void PCA_I2C_DMA_TX_IRQHandler(void)
-{
-  i2c_dma_tx_irq_handler(&hi2c_pca);
-}
-
-/**
-  * @brief  this function handles i2c event interrupt request.
-  * @param  none
-  * @retval none
-  */
-void PCA_I2C_EVT_IRQHandler(void)
-{
-  i2c_evt_irq_handler(&hi2c_pca);
-}
-
-/**
-  * @brief  this function handles i2c error interrupt request.
-  * @param  none
-  * @retval none
-  */
-void PCA_I2C_ERR_IRQHandler(void)
-{
-  i2c_err_irq_handler(&hi2c_pca);
-}
-
-/**
-  * @brief  this function handles exint interrupt request.
-  * @param  none
-  * @retval none
-  */
-void EXINT3_IRQHandler(void)
-{
-  pca9555_irq_handler();
 }

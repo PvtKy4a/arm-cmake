@@ -1,3 +1,5 @@
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "cores/init_flags")
+
 if(NOT ARM_TOOLCHAIN_PATH)
     if(DEFINED ENV{ARM_TOOLCHAIN_PATH})
         message(STATUS "Detected toolchain path ARM_TOOLCHAIN_PATH in environmental variables: ")
@@ -30,14 +32,6 @@ find_program(CMAKE_SIZE NAMES ${ARM_TARGET_TRIPLET}size HINTS ${TOOLCHAIN_BIN_PA
 find_program(CMAKE_DEBUGGER NAMES ${ARM_TARGET_TRIPLET}gdb HINTS ${TOOLCHAIN_BIN_PATH})
 find_program(CMAKE_CPPFILT NAMES ${ARM_TARGET_TRIPLET}c++filt HINTS ${TOOLCHAIN_BIN_PATH})
 
-function(arm_print_size_of_target TARGET)
-    add_custom_target(${TARGET}_always_display_size
-        ALL COMMAND ${CMAKE_SIZE} "$<TARGET_FILE:${TARGET}>"
-        COMMENT "Target Sizes: "
-        DEPENDS ${TARGET}
-    )
-endfunction()
-
 function(_arm_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
     get_target_property(TARGET_OUTPUT_NAME ${TARGET} OUTPUT_NAME)
     if (TARGET_OUTPUT_NAME)
@@ -62,15 +56,7 @@ function(_arm_generate_file TARGET OUTPUT_EXTENSION OBJCOPY_BFD_OUTPUT)
     )
 endfunction()
 
-function(arm_generate_binary_file TARGET)
-    _arm_generate_file(${TARGET} "bin" "binary")
-endfunction()
-
-function(arm_generate_hex_file TARGET)
-    _arm_generate_file(${TARGET} "hex" "ihex")
-endfunction()
-
-function(arm_add_linker_script TARGET VISIBILITY SCRIPT)
+function(_arm_add_ld TARGET VISIBILITY SCRIPT)
     get_filename_component(SCRIPT "${SCRIPT}" ABSOLUTE)
     target_link_options(${TARGET} ${VISIBILITY} -T "${SCRIPT}")
 
@@ -89,22 +75,48 @@ function(arm_add_linker_script TARGET VISIBILITY SCRIPT)
     set_target_properties(${TARGET} PROPERTIES ${INTERFACE_PREFIX}LINK_DEPENDS "${LINK_DEPENDS}")
 endfunction()
 
-function(arm_util_create_family_target CORE)
+set(C_COMPILE_FLAGS -Wall -Wextra -Wpedantic -fdata-sections -ffunction-sections)
+
+set(CXX_COMPILE_FLAGS ${C_COMPILE_FLAGS} -fno-rtti -fno-exceptions -fno-threadsafe-statics)
+
+set(ASM_COMPILE_FLAGS ${C_COMPILE_FLAGS} -x assembler-with-cpp -MMD -MP)
+
+set(C_LINK_FLAGS -Wl,-Map=${CMAKE_PROJECT_NAME}.map -Wl,--gc-sections)
+set(C_LINK_FLAGS ${C_LINK_FLAGS} -Wl,--start-group -lc -lm -Wl,--end-group -Wl,--print-memory-usage)
+
+set(CXX_LINK_FLAGS ${C_LINK_FLAGS} -Wl,--start-group -lstdc++ -lsupc++ -Wl,--end-group)
+
+set(NANO_C_LINK_FLAGS --specs=nano.specs)
+
+set(NANO_CXX_LINK_FLAGS ${NANO_C_LINK_FLAGS})
+
+set(NOSYS_C_LINK_FLAGS --specs=nosys.specs)
+
+set(NOSYS_CXX_LINK_FLAGS ${NOSYS_C_LINK_FLAGS})
+
+function(_arm_create_core_target CORE)
     if(NOT (TARGET ARM::${CORE}))
         add_library(ARM::${CORE} INTERFACE IMPORTED)
         target_compile_options(ARM::${CORE} INTERFACE
-            -Wall
-            -ffunction-sections
-            -fdata-sections
-            --specs=nano.specs
+            $<$<CONFIG:Debug>:-O0 -g3>
+            $<$<CONFIG:Release>:-Os -g0>
+            $<$<COMPILE_LANGUAGE:C>:${C_COMPILE_FLAGS}>
+            $<$<COMPILE_LANGUAGE:ASM>:${ASM_COMPILE_FLAGS}>
+            $<$<COMPILE_LANGUAGE:CXX>:${CXX_COMPILE_FLAGS}>
         )
         target_link_options(ARM::${CORE} INTERFACE
-            --specs=nosys.specs
-            --specs=nano.specs
-            -Wl,--start-group -lc -lm -Wl,--end-group
-            -Wl,-Map=${CMAKE_PROJECT_NAME}.map,--cref
-            -Wl,--gc-sections
-            -Wl,--print-memory-usage
+            $<$<LINK_LANGUAGE:C>:${C_LINK_FLAGS}>
+            $<$<LINK_LANGUAGE:CXX>:${CXX_LINK_FLAGS}>
+        )
+        add_library(ARM::${CORE}::Nano INTERFACE IMPORTED)
+        target_link_options(ARM::${CORE}::Nano INTERFACE
+            $<$<LINK_LANGUAGE:C>:${NANO_C_LINK_FLAGS}>
+            $<$<LINK_LANGUAGE:CXX>:${NANO_CXX_LINK_FLAGS}>
+        )
+        add_library(ARM::${CORE}::NoSys INTERFACE IMPORTED)
+        target_link_options(ARM::${CORE}::NoSys INTERFACE
+            $<$<LINK_LANGUAGE:C>:${NOSYS_C_LINK_FLAGS}>
+            $<$<LINK_LANGUAGE:CXX>:${NOSYS_CXX_LINK_FLAGS}>
         )
     endif()
 endfunction()
@@ -112,3 +124,4 @@ endfunction()
 include(cores/M0)
 include(cores/M3)
 include(cores/M4)
+include(cores/M7)
