@@ -54,6 +54,7 @@ add_subdirectory(Core)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ARM::M0
     ARM::M0::Nano
-    ARM::M0::NoSys
+    #ARM::M4::NoSys
+    ARM::M4::SysCalls
     CMSIS
     HAL)
