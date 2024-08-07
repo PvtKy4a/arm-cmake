@@ -118,6 +118,12 @@ function(_arm_create_core_target CORE)
             $<$<LINK_LANGUAGE:C>:${NOSYS_C_LINK_FLAGS}>
             $<$<LINK_LANGUAGE:CXX>:${NOSYS_CXX_LINK_FLAGS}>
         )
+
+        add_library(ARM::${CORE}::SysCalls INTERFACE IMPORTED)
+        target_sources(ARM::${CORE}::SysCalls INTERFACE
+            ${CMAKE_CURRENT_LIST_DIR}/syscalls.c
+            ${CMAKE_CURRENT_LIST_DIR}/sysmem.c
+        )
     endif()
 endfunction()
 
