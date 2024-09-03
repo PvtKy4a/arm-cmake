@@ -43,6 +43,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ARM::M4
     ARM::M4::Nano
-    ARM::M4::NoSys
+    #ARM::M4::NoSys
+    ARM::M4::SysCalls
     CMSIS
     McuDrivers)

@@ -99,7 +99,9 @@ function(_arm_create_core_target CORE)
         add_library(ARM::${CORE} INTERFACE IMPORTED)
         target_compile_options(ARM::${CORE} INTERFACE
             $<$<CONFIG:Debug>:-O0 -g3>
-            $<$<CONFIG:Release>:-Os -g0>
+            $<$<CONFIG:Release>:-O3 -g0>
+            $<$<CONFIG:MinSizeRel>:-Os -g0>
+            $<$<CONFIG:RelWithDebInfo>:-O3 -g3>
             $<$<COMPILE_LANGUAGE:C>:${C_COMPILE_FLAGS}>
             $<$<COMPILE_LANGUAGE:ASM>:${ASM_COMPILE_FLAGS}>
             $<$<COMPILE_LANGUAGE:CXX>:${CXX_COMPILE_FLAGS}>
@@ -118,6 +120,12 @@ function(_arm_create_core_target CORE)
             $<$<LINK_LANGUAGE:C>:${NOSYS_C_LINK_FLAGS}>
             $<$<LINK_LANGUAGE:CXX>:${NOSYS_CXX_LINK_FLAGS}>
         )
+
+        add_library(ARM::${CORE}::SysCalls INTERFACE IMPORTED)
+        target_sources(ARM::${CORE}::SysCalls INTERFACE
+            ${CMAKE_CURRENT_LIST_DIR}/syscalls.c
+            ${CMAKE_CURRENT_LIST_DIR}/sysmem.c
+        )
     endif()
 endfunction()
 
@@ -125,3 +133,4 @@ include(cores/M0)
 include(cores/M3)
 include(cores/M4)
 include(cores/M7)
+include(cores/M33)
